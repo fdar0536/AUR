@@ -1,6 +1,6 @@
 _plug=butteraugli
 pkgname=vapoursynth-plugin-${_plug}
-pkgver=r1
+pkgver=r2
 pkgrel=1
 pkgdesc="Plugin for Vapoursynth: ${_plug}"
 arch=('x86_64')
@@ -10,7 +10,7 @@ depends=('vapoursynth')
 makedepends=('git'
              'meson')
 provides=("vapoursynth-plugin-${_plug}")
-source=("${_plug}::git+https://github.com/fdar0536/VapourSynth-butteraugli.git#tag=r1")
+source=("${_plug}::git+https://github.com/fdar0536/VapourSynth-butteraugli.git#tag=r2")
 sha1sums=('SKIP')
 
 prepare() {
