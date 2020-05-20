@@ -1,0 +1,44 @@
+diff --git a/input/ffms.c b/input/ffms.c
+index 62013b80..736c1cc2 100644
+--- a/input/ffms.c
++++ b/input/ffms.c
+@@ -176,7 +176,7 @@ static int open_file( char *psz_filename, hnd_t *p_handle, video_info_t *info, c
+     }
+ 
+     /* show video info */
+-    FFMS_Indexer *idxer    = FFMS_CreateIndexer( src_filename, &e );
++    FFMS_Indexer *idxer    = FFMS_CreateIndexer( psz_filename, &e );
+     const char *format     = FFMS_GetFormatNameI( idxer );
+     const char *codec      = FFMS_GetCodecNameI( idxer, trackno );
+     double duration        = videop->NumFrames * videop->FPSDenominator / videop->FPSNumerator;
+diff --git a/version.sh b/version.sh
+index 163f5341..6a9af52e 100755
+--- a/version.sh
++++ b/version.sh
+@@ -17,9 +17,14 @@ elif [ $CHROMA_FORMATS == "X264_CSP_I444" ] ; then
+     CHROMA_FORMATS="4:4:4"
+ fi
+ BUILD_ARCH=`grep "ARCH=" < config.mak | awk -F= '{print $2}'`
++
++if [ $BIT_DEPTH == "0" ]; then
++    BIT_DEPTH="all"
++fi 
++
+ if [ $LOCAL_VER \> 1 ] ; then
+-    PLAIN_VER=`git rev-list porigin/master | sort | join config.git-hash - | wc -l | awk '{print $1}'`
+-    DEV_VER=`git rev-list devel | sort | join config.git-hash - | wc -l | awk '{print $1}'`
++    PLAIN_VER=`git rev-list origin/devel | sort | join config.git-hash - | wc -l | awk '{print $1}'`
++    DEV_VER=`git rev-list origin/devel | sort | join config.git-hash - | wc -l | awk '{print $1}'`
+     echo "#define X264_REV $PLAIN_VER"
+     if [ $PLAIN_VER == $LOCAL_VER ] ; then
+         VER=$PLAIN_VER
+@@ -35,9 +40,6 @@ if [ $LOCAL_VER \> 1 ] ; then
+         fi
+     fi
+     echo "#define X264_REV_DIFF $VER_DIFF"
+-    if git status | grep -q "modified:" ; then
+-        VER="${VER}M"
+-    fi
+     VER="$VER $(git rev-list HEAD -n 1 | cut -c 1-7) $GIT_HEAD [${BIT_DEPTH}-bit@${CHROMA_FORMATS} ${BUILD_ARCH}]"
+     echo "#define X264_VERSION \" r$VER\""
+ else

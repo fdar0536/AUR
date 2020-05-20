@@ -1,0 +1,51 @@
+pkgname=x264-Yuuki-mod
+pkgver=155.rba480859
+pkgrel=1
+epoch=2
+pkgdesc='Open Source H264/AVC video encoder'
+arch=('x86_64')
+url='https://www.videolan.org/developers/x264.html'
+license=('GPL')
+depends=(
+  'libavcodec.so' 'libavformat.so' 'libavutil.so' 'liblsmash.so'
+  'libswscale.so' 'gpac'
+)
+makedepends=('git' 'ffmpeg' 'l-smash' 'nasm')
+source=("git+https://github.com/msg7086/x264_tMod"
+         "fix_issues.patch")
+sha256sums=('SKIP'
+             '2e665ff2588c1be3b4882ea757170cd5aaf9dda77f2418e7d7fccba113ab5e38')
+
+pkgver() {
+  cd x264_tMod
+
+  local _ver=$(grep '#define X264_BUILD' x264.h | cut -d' ' -f3)
+  local _rev=$(git rev-parse --short HEAD)
+
+  echo ${_ver}.r${_rev}
+}
+
+prepare() {
+  cd x264_tMod
+  git checkout Yuuki
+  patch -p1 < ../fix_issues.patch
+}
+
+build() {
+  cd x264_tMod
+
+  ./configure \
+    --prefix='/usr' \
+    --enable-static \
+    --enable-pic \
+    --enable-lto
+  make
+}
+
+package() {
+  cd x264_tMod
+  make DESTDIR="${pkgdir}" install
+  rm -rf ${pkgdir}/usr/include
+  rm -rf ${pkgdir}/usr/lib
+  mv ${pkgdir}/usr/bin/x264 ${pkgdir}/usr/bin/x264-Yuuki
+}

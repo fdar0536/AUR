@@ -1,0 +1,32 @@
+_plug=butteraugli
+pkgname=vapoursynth-plugin-${_plug}
+pkgver=r1
+pkgrel=1
+pkgdesc="Plugin for Vapoursynth: ${_plug}"
+arch=('x86_64')
+url='https://github.com/fdar0536/VapourSynth-butteraugli'
+license=('APACHE')
+depends=('vapoursynth')
+makedepends=('git'
+             'meson')
+provides=("vapoursynth-plugin-${_plug}")
+source=("${_plug}::git+https://github.com/fdar0536/VapourSynth-butteraugli.git#tag=r1")
+sha1sums=('SKIP')
+
+prepare() {
+  cd ${_plug}
+  git submodule update --init
+  cd ${srcdir}/${_plug}
+  arch-meson . build \
+  --libdir='/usr/lib/vapoursynth'
+}
+
+build() {
+  cd ${srcdir}/${_plug}
+  ninja -C build
+}
+
+package() {
+  cd ${srcdir}/${_plug}
+  DESTDIR="${pkgdir}" ninja -C build install
+}

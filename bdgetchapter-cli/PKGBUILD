@@ -1,0 +1,23 @@
+pkgname=bdgetchapter-cli
+pkgver=r1
+pkgrel=1
+pkgdesc='A simple tool that can extract chapter files and qpfiles from bd.'
+arch=('x86_64')
+url='https://github.com/fdar0536/BDGetChapter'
+license=('GPL')
+depends=('libbluray')
+makedepends=('git')
+source=('git+https://github.com/fdar0536/BDGetChapter.git#tag=r1')
+sha256sums=('SKIP')
+
+build() {
+  cd BDGetChapter/cli
+  make
+}
+
+package() {
+  mkdir ${pkgdir}/usr
+  mkdir ${pkgdir}/usr/bin
+  cd BDGetChapter/cli
+  PREFIX=${pkgdir}/usr make install
+}

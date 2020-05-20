@@ -1,0 +1,139 @@
+diff --git a/meson.build b/meson.build
+index cc56b012a..8cf45eba0 100644
+--- a/meson.build
++++ b/meson.build
+@@ -236,6 +236,12 @@ endif
+ 
+ deps += dep_gl
+ 
++if host_machine.system() != 'windows'
++    deps += dependency('pango', version: '>=1.43', required: true)
++    deps += dependency('cairo', version: '>=1.16', required: true)
++    deps += dependency('pangocairo', version: '>=1.43', required: true)
++endif
++
+ # TODO: csri
+ 
+ acconf = configure_file(output: 'acconf.h', configuration: conf)
+diff --git a/src/auto4_base.cpp b/src/auto4_base.cpp
+index 388e1fa3d..e69d172f8 100644
+--- a/src/auto4_base.cpp
++++ b/src/auto4_base.cpp
+@@ -58,13 +58,14 @@
+ #include <windows.h>
+ 
+ #include <libaegisub/charset_conv_win.h>
++#else
++#include "pango/pangocairo.h"
+ #endif
+ 
+ namespace Automation4 {
+ 	bool CalculateTextExtents(AssStyle *style, std::string const& text, double &width, double &height, double &descent, double &extlead)
+ 	{
+ 		width = height = descent = extlead = 0;
+-
+ 		double fontsize = style->fontsize * 64;
+ 		double spacing = style->spacing * 64;
+ 
+@@ -119,54 +120,58 @@ namespace Automation4 {
+ 		DeleteObject(font);
+ 		DeleteObject(dc);
+ 
+-#else // not WIN32
+-		wxMemoryDC thedc;
+-
+-		// fix fontsize to be 72 DPI
+-		//fontsize = -FT_MulDiv((int)(fontsize+0.5), 72, thedc.GetPPI().y);
+-
+-		// now try to get a font!
+-		// use the font list to get some caching... (chance is the script will need the same font very often)
+-		// USING wxTheFontList SEEMS TO CAUSE BAD LEAKS!
+-		//wxFont *thefont = wxTheFontList->FindOrCreateFont(
+-		wxFont thefont(
+-			(int)fontsize,
+-			wxFONTFAMILY_DEFAULT,
+-			style->italic ? wxFONTSTYLE_ITALIC : wxFONTSTYLE_NORMAL,
+-			style->bold ? wxFONTWEIGHT_BOLD : wxFONTWEIGHT_NORMAL,
+-			style->underline,
+-			to_wx(style->font),
+-			wxFONTENCODING_SYSTEM); // FIXME! make sure to get the right encoding here, make some translation table between windows and wx encodings
+-		thedc.SetFont(thefont);
+-
+-		wxString wtext(to_wx(text));
+-		if (spacing) {
+-			// If there's inter-character spacing, kerning info must not be used, so calculate width per character
+-			// NOTE: Is kerning actually done either way?!
+-			for (auto const& wc : wtext) {
+-				int a, b, c, d;
+-				thedc.GetTextExtent(wc, &a, &b, &c, &d);
+-				double scaling = fontsize / (double)(b > 0 ? b : 1); // semi-workaround for missing OS/2 table data for scaling
+-				width += (a + spacing)*scaling;
+-				height = b > height ? b*scaling : height;
+-				descent = c > descent ? c*scaling : descent;
+-				extlead = d > extlead ? d*scaling : extlead;
+-			}
+-		} else {
+-			// If the inter-character spacing should be zero, kerning info can (and must) be used, so calculate everything in one go
+-			wxCoord lwidth, lheight, ldescent, lextlead;
+-			thedc.GetTextExtent(wtext, &lwidth, &lheight, &ldescent, &lextlead);
+-			double scaling = fontsize / (double)(lheight > 0 ? lheight : 1); // semi-workaround for missing OS/2 table data for scaling
+-			width = lwidth*scaling; height = lheight*scaling; descent = ldescent*scaling; extlead = lextlead*scaling;
+-		}
+-#endif
+-
+ 		// Compensate for scaling
+ 		width = style->scalex / 100 * width / 64;
+ 		height = style->scaley / 100 * height / 64;
+ 		descent = style->scaley / 100 * descent / 64;
+ 		extlead = style->scaley / 100 * extlead / 64;
+-
++#else // not WIN32
++		// This is almost copypasta from Youka/Yutils
++		cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_A8, 1, 1);
++		cairo_t *context = cairo_create(surface);
++		PangoLayout *layout = pango_cairo_create_layout(context);
++
++		//set font to layout
++		PangoFontDescription *font_desc = pango_font_description_new();
++		pango_font_description_set_family(font_desc, style->font.c_str());
++		pango_font_description_set_weight(font_desc, style->bold ? PANGO_WEIGHT_BOLD : PANGO_WEIGHT_NORMAL);
++		pango_font_description_set_style(font_desc, style->italic ? PANGO_STYLE_ITALIC : PANGO_STYLE_NORMAL);
++		pango_font_description_set_absolute_size(font_desc, PANGO_SCALE * fontsize);
++		pango_layout_set_font_description(layout, font_desc);
++		PangoAttrList *attr = pango_attr_list_new();
++		pango_attr_list_insert(attr,
++		                       pango_attr_underline_new(style->underline ? PANGO_UNDERLINE_SINGLE : PANGO_UNDERLINE_NONE));
++		pango_attr_list_insert(attr,
++		                      pango_attr_strikethrough_new(style->strikeout));
++		pango_attr_list_insert(attr, pango_attr_letter_spacing_new(spacing * PANGO_SCALE));
++		pango_layout_set_attributes(layout, attr);
++
++		PangoFontMetrics *metrics = pango_context_get_metrics(pango_layout_get_context(layout), pango_layout_get_font_description(layout), nullptr);
++		double ascent = static_cast<double>(pango_font_metrics_get_ascent(metrics));
++		descent = static_cast<double>(pango_font_metrics_get_descent(metrics));
++
++		double downscale = (double)1 / (double)64;
++		double fonthack_scale = style->fontsize / ((ascent + descent) / (double)PANGO_SCALE * downscale);
++		double scaley = style->scaley / (double)100;
++		double scalex = style->scalex / (double)100;
++		descent *= (fonthack_scale * scaley);
++		extlead = pango_layout_get_spacing(layout) / PANGO_SCALE * downscale * scaley * fonthack_scale;
++		
++		pango_layout_set_text(layout, text.c_str(), -1);
++		PangoRectangle *rect = new PangoRectangle;
++		pango_layout_get_pixel_extents(layout, nullptr, rect);
++		width = rect->width * downscale * scalex * fonthack_scale;
++		height = rect->height * downscale * scaley * fonthack_scale;
++
++		//clean up
++		delete rect;
++		pango_font_metrics_unref (metrics);
++		pango_attr_list_unref(attr);
++		pango_font_description_free(font_desc);
++		g_object_unref(layout);
++		cairo_destroy(context);
++		cairo_surface_destroy(surface);
++#endif
+ 		return true;
+ 	}
+ 

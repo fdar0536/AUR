@@ -1,0 +1,41 @@
+diff --git a/vsedit/src/preview/preview_dialog.cpp b/vsedit/src/preview/preview_dialog.cpp
+index d1d707c..c6fdcae 100644
+--- a/vsedit/src/preview/preview_dialog.cpp
++++ b/vsedit/src/preview/preview_dialog.cpp
+@@ -34,6 +34,7 @@
+ #include <QImageWriter>
+ #include <QFileInfo>
+ #include <algorithm>
++#include <new>
+ #include <cmath>
+ 
+ //==============================================================================
+@@ -529,14 +530,26 @@ void PreviewDialog::slotSaveSnapshot()
+ 
+ 	if(!snapshotFilePath.isEmpty())
+ 	{
+-		bool success = m_framePixmap.save(snapshotFilePath, format, 100);
+-		if(success)
++		QImageWriter *writer = new (std::nothrow) QImageWriter(snapshotFilePath, format);
++		if (!writer)
++		{
++			QMessageBox::critical(this, trUtf8("Image save error"),
++				trUtf8("Error while saving image ") + snapshotFilePath);
++			return;
++		}
++
++		writer->setCompression(100);
++		writer->setQuality(100);
++		if (writer->write(m_framePixmap.toImage()))
++		{
+ 			m_pSettingsManager->setLastSnapshotExtension(suffix);
++		}
+ 		else
+ 		{
+ 			QMessageBox::critical(this, trUtf8("Image save error"),
+ 				trUtf8("Error while saving image ") + snapshotFilePath);
+ 		}
++		delete writer;
+ 	}
+ }
+ 
