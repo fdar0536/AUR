@@ -1,5 +1,5 @@
 pkgname=x265-Yuuki-mod
-pkgver=3.3
+pkgver=3.4
 pkgrel=1
 pkgdesc='Open Source H265/HEVC video encoder'
 arch=('x86_64')
