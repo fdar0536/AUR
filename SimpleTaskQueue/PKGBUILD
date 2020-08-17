@@ -1,5 +1,5 @@
 pkgname=simpletaskqueue
-pkgver=r9
+pkgver=r10
 pkgrel=1
 pkgdesc="A simple task queue"
 arch=(x86_64)
@@ -12,7 +12,7 @@ source=(
     https://raw.githubusercontent.com/google/material-design-icons/master/device/svg/production/ic_developer_mode_48px.svg
 )
 sha256sums=(
-    '0c8bdb319a81a1fd45bdd78ac238ffe9a0845e70e299c6af8800d98b9a5628a9'
+    '1b2e088f1f128f5f370af8c4ecbcf92f32388ce737d638648ae9cbe4b0edfd34'
     '372fb954f2c0ed1aaa29c06eb418a6c59055481f2c68a5c7ebf7bd03066a1f28'
 )
 
