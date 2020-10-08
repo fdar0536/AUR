@@ -1,5 +1,5 @@
 pkgname=simpletaskqueue
-pkgver=r10
+pkgver=r11
 pkgrel=1
 pkgdesc="A simple task queue"
 arch=(x86_64)
@@ -9,11 +9,11 @@ depends=(qt5-base)
 makedepends=(cmake)
 source=(
     https://github.com/fdar0536/Simple-Task-Queue/archive/$pkgver.tar.gz
-    https://raw.githubusercontent.com/google/material-design-icons/master/device/svg/production/ic_developer_mode_48px.svg
+    https://raw.githubusercontent.com/google/material-design-icons/master/src/device/developer_mode/materialicons/24px.svg
 )
 sha256sums=(
-    '1b2e088f1f128f5f370af8c4ecbcf92f32388ce737d638648ae9cbe4b0edfd34'
-    '372fb954f2c0ed1aaa29c06eb418a6c59055481f2c68a5c7ebf7bd03066a1f28'
+    'ef293ea34c75f2e626155774a34b0dc2eb6e8f39604284532a4338bf7ea6db19'
+    'c8b90c61f86e1fd7f25904553a58a1c79b753fe6e6bb3596f8da42ef7b474328'
 )
 
 build() {
@@ -25,7 +25,7 @@ build() {
 
 package() {
     cmake --build build --target install -- DESTDIR="$pkgdir"
-    mv ic_developer_mode_48px.svg STQ.svg
+    mv 24px.svg STQ.svg
     install -Dm644 STQ.svg $pkgdir/usr/share/icons/STQ.svg
     cd Simple-Task-Queue-$pkgver
     sed -i 's/Icon=\/path\/to\/your\/STQ.ico/Icon=\/usr\/share\/icons\/STQ.svg/' simpletaskqueue.desktop
