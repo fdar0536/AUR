@@ -1,5 +1,5 @@
 pkgname=vapoursynth-editor-git
-pkgver=r19.60.g503820d
+pkgver=r19.64.g26b5f50
 pkgrel=1
 pkgdesc="A simple program for edit/create VapourSynth scripts. (GIT version)"
 arch=('x86_64')
