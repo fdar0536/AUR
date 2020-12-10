@@ -1,18 +1,18 @@
 pkgname=simpletaskqueue
-pkgver=r11
+pkgver=r12
 pkgrel=1
 pkgdesc="A simple task queue"
 arch=(x86_64)
 url="https://github.com/fdar0536/Simple-Task-Queue"
 license=(MIT)
-depends=(qt5-base)
+depends=(qt6-base)
 makedepends=(cmake)
 source=(
     https://github.com/fdar0536/Simple-Task-Queue/archive/$pkgver.tar.gz
     https://raw.githubusercontent.com/google/material-design-icons/master/src/device/developer_mode/materialicons/24px.svg
 )
 sha256sums=(
-    'ef293ea34c75f2e626155774a34b0dc2eb6e8f39604284532a4338bf7ea6db19'
+    'e222f5f0304e3a38b1b9aa6c6d7de12458bf895e3a8f09ba383da356761da3f2'
     'c8b90c61f86e1fd7f25904553a58a1c79b753fe6e6bb3596f8da42ef7b474328'
 )
 
