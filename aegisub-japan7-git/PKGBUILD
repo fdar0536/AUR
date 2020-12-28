@@ -1,6 +1,6 @@
 pkgname=aegisub-japan7-git
 pkgver=3.3.3.r73.09b424fbb
-pkgrel=2
+pkgrel=3
 pkgdesc='A fork of aegisub including tap-to-time feature and custom user scripts'
 arch=(x86_64)
 url=https://github.com/odrling/Aegisub
